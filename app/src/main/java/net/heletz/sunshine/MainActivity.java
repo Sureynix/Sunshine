@@ -1,12 +1,19 @@
 package net.heletz.sunshine;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String LOG_TAG = DetailActivity.class.getSimpleName();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,8 +38,19 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_settings:
+                Intent settings = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(settings);
+                return true;
+            case R.id.action_map:
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                Uri uri = Uri.parse("geo:0,0?q=" + preferences.getString(getString(R.string.pref_location_key), null));
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(uri);
+                if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
+                else Log.d(LOG_TAG, "Please install a mapping application!");
+                return true;
         }
 
         return super.onOptionsItemSelected(item);

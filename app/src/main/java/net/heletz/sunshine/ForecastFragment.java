@@ -1,9 +1,11 @@
 package net.heletz.sunshine;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -61,8 +63,7 @@ public class ForecastFragment extends Fragment {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh) {
-            FetchWeatherTask weatherTask = new FetchWeatherTask();
-            weatherTask.execute("94043");
+            updateWeather();
             return true;
         }
 
@@ -73,12 +74,6 @@ public class ForecastFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         List<String> fakeWeather = new ArrayList<String>();
-        fakeWeather.add("Today - Sunny - 88/63");
-        fakeWeather.add("Tomorrow - Foggy - 70/46");
-        fakeWeather.add("Weds - Cloudy - 72/63");
-        fakeWeather.add("Thurs - Rainy - 64/51");
-        fakeWeather.add("Fri - Foggy - 70/46");
-        fakeWeather.add("Sat - Sunny - 76/68");
         adapter = new ArrayAdapter<String>(getActivity(),
                 R.layout.list_item_forcast, R.id.list_item_forecast_textview,
                 fakeWeather);
@@ -95,6 +90,16 @@ public class ForecastFragment extends Fragment {
             }
         });
         return rootView;
+    }
+    public void updateWeather() {
+        FetchWeatherTask weatherTask = new FetchWeatherTask();
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getContext());
+        weatherTask.execute(settings.getString(getString(R.string.pref_location_key), null));
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
     }
 
 
@@ -122,6 +127,7 @@ public class ForecastFragment extends Fragment {
             String highLowStr = roundedHigh + "/" + roundedLow;
             return highLowStr;
         }
+
 
         /**
          * Take the String representing the complete forecast in JSON Format and
@@ -210,7 +216,8 @@ public class ForecastFragment extends Fragment {
 
 
             String format = "json";
-            String units = "metric";
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getContext());
+            String units = settings.getString(getString(R.string.pref_units_key), null);
             int numDays = 7;
 
             try {
@@ -231,6 +238,7 @@ public class ForecastFragment extends Fragment {
                         .appendQueryParameter(daysParam, Integer.toString(numDays))
                         .appendQueryParameter(appid, "a99a539d8a7409f058a5712162350841").build();
                 URL url = new URL(builtUri.toString());
+                Log.v(LOG_TAG, url.toString());
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
