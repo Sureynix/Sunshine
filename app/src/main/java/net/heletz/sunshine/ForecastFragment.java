@@ -211,13 +211,18 @@ public class ForecastFragment extends Fragment {
             if (params.length == 0) {
                 return null;
             }
+
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
 
 
             String format = "json";
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getContext());
-            String units = settings.getString(getString(R.string.pref_units_key), null);
+            String units = settings.getString(getString(R.string.pref_units_key), getString(R.string.pref_units_default));
+            String zipcode = settings.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));//"94043";
+            if (params[0] != null) {
+                zipcode = params[0];
+            }
             int numDays = 7;
 
             try {
@@ -232,7 +237,7 @@ public class ForecastFragment extends Fragment {
                 final String appid = "APPID";
 
                 Uri builtUri = Uri.parse(baseUrl).buildUpon()
-                        .appendQueryParameter(queryParam, params[0])
+                        .appendQueryParameter(queryParam, zipcode)
                         .appendQueryParameter(formatParam, format)
                         .appendQueryParameter(unitsParam, units)
                         .appendQueryParameter(daysParam, Integer.toString(numDays))
